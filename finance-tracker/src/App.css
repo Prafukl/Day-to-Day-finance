@@ -1928,3 +1928,143 @@ tr:hover td {
     padding: 20px;
   }
 }
+/* Add these styles to your existing App.css file */
+
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.edit-btn {
+  background: #3B82F6;
+  color: white;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.edit-btn:hover {
+  background: #2563EB;
+  transform: translateY(-1px);
+}
+
+.delete-btn {
+  background: #EF4444;
+  color: white;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-btn:hover {
+  background: #DC2626;
+  transform: translateY(-1px);
+}
+
+.subcategory-tag {
+  background: #F3F4F6;
+  color: #374151;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.payment-tag {
+  background: #EEF2FF;
+  color: #4338CA;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.subcategory-cell,
+.payment-cell {
+  min-width: 120px;
+}
+
+/* Custom Subcategory Input */
+.subcategory-input-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.subcategory-input-group select {
+  flex: 1;
+  min-width: 0;
+}
+
+.add-subcategory-btn {
+  background: #10B981;
+  color: white;
+  border: none;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+  height: fit-content;
+  align-self: center;
+}
+
+.add-subcategory-btn:hover {
+  background: #059669;
+}
+
+.custom-subcategory-input {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid #D1D5DB;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+}
+
+.save-subcategory-btn {
+  background: #3B82F6;
+  color: white;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  cursor: pointer;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .action-buttons {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  
+  .edit-btn,
+  .delete-btn {
+    padding: 0.375rem;
+    font-size: 0.875rem;
+  }
+
+  .subcategory-input-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

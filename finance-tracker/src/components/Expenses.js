@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { collection, addDoc, query, where, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
+import { collection, addDoc, query, where, onSnapshot, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { auth, db, storage } from '../firebase/config';
-import { FaTrash, FaFileUpload, FaRupeeSign, FaCalendarAlt, FaTag, FaAlignLeft, FaPlus, FaReceipt } from 'react-icons/fa';
+import { FaTrash, FaFileUpload, FaRupeeSign, FaCalendarAlt, FaTag, FaAlignLeft, FaPlus, FaReceipt, FaCreditCard, FaEdit } from 'react-icons/fa';
 
 function Expenses() {
   const [expenses, setExpenses] = useState([]);
@@ -10,12 +10,88 @@ function Expenses() {
     description: '',
     amount: '',
     category: '',
+    subcategory: '',
+    paymentMethod: '',
     date: '',
     billFile: null
   });
   const [uploading, setUploading] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
   const [showForm, setShowForm] = useState(false);
+  const [editingExpense, setEditingExpense] = useState(null);
+  const [customSubcategories, setCustomSubcategories] = useState({});
+  const [showCustomInput, setShowCustomInput] = useState(false);
+  const [newSubcategory, setNewSubcategory] = useState('');
+
+  // Categories with subcategories
+  const categoriesData = {
+    Food: {
+      icon: '🍔',
+      color: '#10B981',
+      subcategories: ['Zomato', 'Street Food', 'Groceries', 'Restaurant', 'Cafe']
+    },
+    Transport: {
+      icon: '🚗',
+      color: '#3B82F6',
+      subcategories: ['Uber', 'Bus', 'Train', 'Petrol', 'Auto']
+    },
+    Shopping: {
+      icon: '🛍️',
+      color: '#EC4899',
+      subcategories: ['Amazon', 'Clothes', 'Electronics', 'Home', 'Online']
+    },
+    Entertainment: {
+      icon: '🎬',
+      color: '#F59E0B',
+      subcategories: ['Movies', 'Games', 'Streaming', 'Events', 'Sports']
+    },
+    Bills: {
+      icon: '🧾',
+      color: '#8B5CF6',
+      subcategories: ['Electricity', 'Internet', 'Phone', 'Water', 'Gas']
+    },
+    Healthcare: {
+      icon: '🏥',
+      color: '#EF4444',
+      subcategories: ['Medicine', 'Doctor', 'Insurance', 'Hospital', 'Checkup']
+    },
+    Education: {
+      icon: '📚',
+      color: '#06B6D4',
+      subcategories: ['Books', 'Course', 'Tuition', 'Online', 'Supplies']
+    },
+    Other: {
+      icon: '📌',
+      color: '#64748B',
+      subcategories: ['Miscellaneous', 'Gift', 'Donation', 'Personal']
+    }
+  };
+
+  const paymentMethods = [
+    { value: 'cash', label: 'Cash', icon: '💵' },
+    { value: 'card', label: 'Debit/Credit Card', icon: '💳' },
+    { value: 'upi', label: 'UPI', icon: '📱' },
+    { value: 'netbanking', label: 'Net Banking', icon: '🏦' },
+    { value: 'wallet', label: 'Digital Wallet', icon: '👛' }
+  ];
+
+  const categories = Object.keys(categoriesData).map(key => ({
+    value: key,
+    ...categoriesData[key]
+  }));
+
+  // Load custom subcategories from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('customSubcategories');
+    if (saved) {
+      setCustomSubcategories(JSON.parse(saved));
+    }
+  }, []);
+
+  // Save custom subcategories to localStorage
+  useEffect(() => {
+    localStorage.setItem('customSubcategories', JSON.stringify(customSubcategories));
+  }, [customSubcategories]);
 
   useEffect(() => {
     const userId = auth.currentUser?.uid;
@@ -37,6 +113,34 @@ function Expenses() {
     }
   };
 
+  const handleCategoryChange = (category) => {
+    setFormData({ ...formData, category, subcategory: '' });
+    setShowCustomInput(false);
+    setNewSubcategory('');
+  };
+
+  const addCustomSubcategory = () => {
+    if (newSubcategory.trim() && formData.category) {
+      const updated = { ...customSubcategories };
+      if (!updated[formData.category]) {
+        updated[formData.category] = [];
+      }
+      if (!updated[formData.category].includes(newSubcategory.trim())) {
+        updated[formData.category].push(newSubcategory.trim());
+        setCustomSubcategories(updated);
+        setFormData({ ...formData, subcategory: newSubcategory.trim() });
+      }
+      setNewSubcategory('');
+      setShowCustomInput(false);
+    }
+  };
+
+  const getAllSubcategories = (category) => {
+    const defaults = categoriesData[category]?.subcategories || [];
+    const customs = customSubcategories[category] || [];
+    return [...defaults, ...customs];
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setUploading(true);
@@ -51,30 +155,58 @@ function Expenses() {
         billUrl = await getDownloadURL(snapshot.ref);
       }
 
-      await addDoc(collection(db, 'expenses'), {
+      const expenseData = {
         userId,
         description: formData.description,
         amount: parseFloat(formData.amount),
         category: formData.category,
+        subcategory: formData.subcategory,
+        paymentMethod: formData.paymentMethod,
         date: formData.date,
-        billUrl,
-        createdAt: new Date().toISOString()
-      });
+        billUrl: billUrl || (editingExpense?.billUrl || ''),
+        createdAt: editingExpense?.createdAt || new Date().toISOString()
+      };
+
+      if (editingExpense) {
+        // Update existing expense
+        const expenseRef = doc(db, 'expenses', editingExpense.id);
+        await updateDoc(expenseRef, expenseData);
+        setEditingExpense(null);
+      } else {
+        // Add new expense
+        await addDoc(collection(db, 'expenses'), expenseData);
+      }
 
       setFormData({
         description: '',
         amount: '',
         category: '',
+        subcategory: '',
+        paymentMethod: '',
         date: '',
         billFile: null
       });
       document.getElementById('billInput').value = '';
       setShowForm(false);
     } catch (error) {
-      console.error('Error adding expense:', error);
+      console.error('Error saving expense:', error);
     } finally {
       setUploading(false);
     }
+  };
+
+  const handleEdit = (expense) => {
+    setFormData({
+      description: expense.description,
+      amount: expense.amount.toString(),
+      category: expense.category,
+      subcategory: expense.subcategory || '',
+      paymentMethod: expense.paymentMethod || '',
+      date: expense.date,
+      billFile: null
+    });
+    setEditingExpense(expense);
+    setShowForm(true);
   };
 
   const handleDelete = async (id) => {
@@ -91,25 +223,17 @@ function Expenses() {
     ? expenses 
     : expenses.filter(exp => exp.category === activeTab);
 
-  const categories = [
-    { value: 'Food', color: '#10B981', icon: '🍔' },
-    { value: 'Transport', color: '#3B82F6', icon: '🚗' },
-    { value: 'Shopping', color: '#EC4899', icon: '🛍️' },
-    { value: 'Entertainment', color: '#F59E0B', icon: '🎬' },
-    { value: 'Bills', color: '#8B5CF6', icon: '🧾' },
-    { value: 'Healthcare', color: '#EF4444', icon: '🏥' },
-    { value: 'Education', color: '#06B6D4', icon: '📚' },
-    { value: 'Other', color: '#64748B', icon: '📌' }
-  ];
-
   const getCategoryColor = (category) => {
-    const found = categories.find(cat => cat.value === category);
-    return found ? found.color : '#64748B';
+    return categoriesData[category]?.color || '#64748B';
   };
 
   const getCategoryIcon = (category) => {
-    const found = categories.find(cat => cat.value === category);
-    return found ? found.icon : '📌';
+    return categoriesData[category]?.icon || '📌';
+  };
+
+  const getPaymentIcon = (method) => {
+    const payment = paymentMethods.find(p => p.value === method);
+    return payment?.icon || '💳';
   };
 
   const totalExpenses = filteredExpenses.reduce((sum, exp) => sum + exp.amount, 0);
@@ -123,7 +247,21 @@ function Expenses() {
         </div>
         <button 
           className="add-expense-btn"
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => {
+            setShowForm(!showForm);
+            if (showForm) {
+              setEditingExpense(null);
+              setFormData({
+                description: '',
+                amount: '',
+                category: '',
+                subcategory: '',
+                paymentMethod: '',
+                date: '',
+                billFile: null
+              });
+            }
+          }}
         >
           <FaPlus /> {showForm ? 'Cancel' : 'Add Expense'}
         </button>
@@ -133,7 +271,7 @@ function Expenses() {
         <div className="expense-form-card">
           <div className="form-header">
             <FaReceipt className="form-icon" />
-            <h2>Add New Expense</h2>
+            <h2>{editingExpense ? 'Edit Expense' : 'Add New Expense'}</h2>
           </div>
           <form onSubmit={handleSubmit}>
             <div className="form-grid">
@@ -164,12 +302,72 @@ function Expenses() {
                 <label><FaTag /> Category</label>
                 <select
                   value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  onChange={(e) => handleCategoryChange(e.target.value)}
                   required
                 >
                   <option value="">Select Category</option>
                   {categories.map(cat => (
                     <option key={cat.value} value={cat.value}>{cat.icon} {cat.value}</option>
+                  ))}
+                </select>
+              </div>
+
+              {formData.category && (
+                <div className="form-group">
+                  <label><FaTag /> Subcategory</label>
+                  <div className="subcategory-input-group">
+                    <select
+                      value={formData.subcategory}
+                      onChange={(e) => setFormData({ ...formData, subcategory: e.target.value })}
+                      required
+                    >
+                      <option value="">Select Subcategory</option>
+                      {getAllSubcategories(formData.category).map(sub => (
+                        <option key={sub} value={sub}>{sub}</option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      className="add-subcategory-btn"
+                      onClick={() => setShowCustomInput(!showCustomInput)}
+                    >
+                      <FaPlus /> Add New
+                    </button>
+                  </div>
+                  {showCustomInput && (
+                    <div>
+                      <input
+                        type="text"
+                        className="custom-subcategory-input"
+                        placeholder="Enter new subcategory"
+                        value={newSubcategory}
+                        onChange={(e) => setNewSubcategory(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && addCustomSubcategory()}
+                      />
+                      <button
+                        type="button"
+                        className="save-subcategory-btn"
+                        onClick={addCustomSubcategory}
+                      >
+                        Save
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="form-group">
+                <label><FaCreditCard /> Payment Method</label>
+                <select
+                  value={formData.paymentMethod}
+                  onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
+                  required
+                >
+                  <option value="">Select Payment Method</option>
+                  {paymentMethods.map(method => (
+                    <option key={method.value} value={method.value}>
+                      {method.icon} {method.label}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -201,10 +399,10 @@ function Expenses() {
             <button type="submit" disabled={uploading} className="submit-btn">
               {uploading ? (
                 <>
-                  <span className="spinner"></span> Adding...
+                  <span className="spinner"></span> {editingExpense ? 'Updating...' : 'Adding...'}
                 </>
               ) : (
-                'Add Expense'
+                editingExpense ? 'Update Expense' : 'Add Expense'
               )}
             </button>
           </form>
@@ -248,6 +446,8 @@ function Expenses() {
                     <th>Date</th>
                     <th>Description</th>
                     <th>Category</th>
+                    <th>Subcategory</th>
+                    <th>Payment</th>
                     <th>Amount</th>
                     <th>Bill</th>
                     <th>Actions</th>
@@ -271,6 +471,20 @@ function Expenses() {
                           {getCategoryIcon(expense.category)} {expense.category}
                         </span>
                       </td>
+                      <td className="subcategory-cell">
+                        {expense.subcategory && (
+                          <span className="subcategory-tag">
+                            {expense.subcategory}
+                          </span>
+                        )}
+                      </td>
+                      <td className="payment-cell">
+                        {expense.paymentMethod && (
+                          <span className="payment-tag">
+                            {getPaymentIcon(expense.paymentMethod)} {expense.paymentMethod}
+                          </span>
+                        )}
+                      </td>
                       <td className="amount-cell">₹{expense.amount?.toFixed(2)}</td>
                       <td>
                         {expense.billUrl && (
@@ -285,13 +499,22 @@ function Expenses() {
                         )}
                       </td>
                       <td>
-                        <button 
-                          onClick={() => handleDelete(expense.id)} 
-                          className="delete-btn"
-                          aria-label="Delete expense"
-                        >
-                          <FaTrash />
-                        </button>
+                        <div className="action-buttons">
+                          <button 
+                            onClick={() => handleEdit(expense)} 
+                            className="edit-btn"
+                            aria-label="Edit expense"
+                          >
+                            <FaEdit />
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(expense.id)} 
+                            className="delete-btn"
+                            aria-label="Delete expense"
+                          >
+                            <FaTrash />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -300,7 +523,6 @@ function Expenses() {
             </div>
           ) : (
             <div className="empty-state">
-              <img src="/empty-expenses.svg" alt="No expenses" className="empty-image" />
               <h3>No expenses found {activeTab !== 'all' ? `for ${activeTab}` : ''}</h3>
               <p>Start by adding your first expense</p>
               <button 
