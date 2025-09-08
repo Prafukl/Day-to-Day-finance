@@ -14,6 +14,7 @@ import './App.css';
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -28,12 +29,23 @@ function App() {
     return <div className="loading">Loading...</div>;
   }
 
+  const sidebarWidth = isCollapsed ? '80px' : '256px';
+
   return (
     <Router>
-      <div className="App">
-        {user ? (
-          <>
-            <Navigation user={user} />
+      {user ? (
+        <div style={{ display: 'flex', height: '100vh' }}>
+          <Navigation 
+            user={user} 
+            isCollapsed={isCollapsed}
+            setIsCollapsed={setIsCollapsed}
+          />
+          <main style={{ 
+            flex: 1, 
+            marginLeft: sidebarWidth, 
+            overflowY: 'auto',
+            transition: 'margin-left 0.3s ease'
+          }}>
             <Routes>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/expenses" element={<Expenses />} />
@@ -41,14 +53,14 @@ function App() {
               <Route path="/investments" element={<Investments />} />
               <Route path="/" element={<Navigate to="/dashboard" />} />
             </Routes>
-          </>
-        ) : (
-          <Routes>
-            <Route path="/" element={<Login />} />
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
-        )}
-      </div>
+          </main>
+        </div>
+      ) : (
+        <Routes>
+          <Route path="/" element={<Login />} />
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      )}
     </Router>
   );
 }

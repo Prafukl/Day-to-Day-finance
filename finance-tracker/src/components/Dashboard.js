@@ -15,8 +15,6 @@ function Dashboard() {
     investments: true
   });
   const [subscriptionError, setSubscriptionError] = useState(null);
-  
-  // New state for expense filtering
   const [expenseFilter, setExpenseFilter] = useState('daily');
   const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
 
@@ -134,7 +132,8 @@ function Dashboard() {
     value
   }));
 
-  const COLORS = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
+  // Updated color scheme to match analytics dashboard
+  const COLORS = ['#4285F4', '#34A853', '#EA4335', '#FBBC04', '#9AA0A6', '#FF6D01'];
 
   const monthlyData = [
     { name: 'Expenses', amount: totalExpenses },
@@ -142,401 +141,351 @@ function Dashboard() {
     { name: 'Investments', amount: totalInvestments }
   ];
 
-  // Get category icon
+  // Get category icon with blue theme
   const getCategoryIcon = (category) => {
+    const iconStyle = { fontSize: '16px', color: '#4285F4' };
     switch(category) {
-      case 'Food': return <FaUtensils className="category-icon" />;
-      case 'Shopping': return <FaShoppingCart className="category-icon" />;
-      case 'Housing': return <FaHome className="category-icon" />;
-      case 'Transport': return <FaCar className="category-icon" />;
-      case 'Entertainment': return <FaGamepad className="category-icon" />;
-      case 'Health': return <FaMedkit className="category-icon" />;
-      default: return <FaWallet className="category-icon" />;
+      case 'Food': return <FaUtensils style={iconStyle} />;
+      case 'Shopping': return <FaShoppingCart style={iconStyle} />;
+      case 'Housing': return <FaHome style={iconStyle} />;
+      case 'Transport': return <FaCar style={iconStyle} />;
+      case 'Entertainment': return <FaGamepad style={iconStyle} />;
+      case 'Health': return <FaMedkit style={iconStyle} />;
+      default: return <FaWallet style={iconStyle} />;
     }
   };
 
   const allLoaded = !loading.expenses && !loading.subscriptions && !loading.investments;
 
   if (!allLoaded) return (
-    <div className="loading-screen">
-      <div className="spinner"></div>
-      <p>Loading your financial dashboard...</p>
-      {subscriptionError && <p className="error-message">{subscriptionError}</p>}
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: '100vh',
+      backgroundColor: '#f8f9fa'
+    }}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{
+          width: '60px',
+          height: '60px',
+          border: '3px solid #e9ecef',
+          borderTop: '3px solid #4285F4',
+          borderRadius: '50%',
+          margin: '0 auto 16px',
+          animation: 'spin 1s linear infinite'
+        }}></div>
+        <p style={{ color: '#6c757d', marginTop: '16px' }}>Loading your financial dashboard...</p>
+        {subscriptionError && <p style={{ color: '#dc3545', marginTop: '8px' }}>{subscriptionError}</p>}
+      </div>
+      <style>
+        {`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}
+      </style>
     </div>
   );
 
   return (
-    <div className="dashboard-container">
-      <header className="dashboard-header">
-        <h1><FaChartLine className="header-icon" /> Financial Dashboard</h1>
-        <p className="subtitle">Overview of your financial health</p>
+    <div style={{ 
+      minHeight: '100vh', 
+      backgroundColor: '#f8f9fa',
+      padding: '24px' 
+    }}>
+      {/* Header */}
+      <header style={{ marginBottom: '32px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+          <div style={{
+            backgroundColor: '#4285F4',
+            padding: '16px',
+            borderRadius: '12px',
+            marginRight: '16px',
+            boxShadow: '0 2px 8px rgba(66, 133, 244, 0.15)'
+          }}>
+            <FaChartLine style={{ fontSize: '32px', color: 'white' }} />
+          </div>
+          <div>
+            <h1 style={{ 
+              fontSize: '32px', 
+              fontWeight: '600', 
+              color: '#202124', 
+              margin: '0 0 4px 0'
+            }}>
+              Financial Dashboard
+            </h1>
+            <p style={{ color: '#5f6368', margin: 0, fontSize: '16px' }}>Overview of your financial health</p>
+          </div>
+        </div>
       </header>
       
-      <div className="stats-grid">
-        <div className="stat-card expense-card">
-          <div className="stat-icon">
-            <FaMoneyBillWave />
-          </div>
-          <div className="stat-content">
-            <h3>Total Expenses</h3>
-            <p className="amount">₹{totalExpenses.toFixed(2)}</p>
-            <span className="period">This Month</span>
-          </div>
-        </div>
-        
-        <div className="stat-card subscription-card">
-          <div className="stat-icon">
-            <MdSubscriptions />
-          </div>
-          <div className="stat-content">
-            <h3>Active Subscriptions</h3>
-            {subscriptionError ? (
-              <p className="error-message">{subscriptionError}</p>
-            ) : (
-              <>
-                <p className="amount">₹{totalSubscriptions.toFixed(2)}</p>
-                <span className="period">Monthly</span>
-              </>
-            )}
-          </div>
-        </div>
-        
-        <div className="stat-card investment-card">
-          <div className="stat-icon">
-            <MdTrendingUp />
-          </div>
-          <div className="stat-content">
-            <h3>Total Investments</h3>
-            <p className="amount">₹{totalInvestments.toFixed(2)}</p>
-            <span className="period">Portfolio</span>
-          </div>
-        </div>
-        
-        <div className={`stat-card networth-card ${netWorth >= 0 ? 'positive' : 'negative'}`}>
-          <div className="stat-icon">
-            <MdAccountBalance />
-          </div>
-          <div className="stat-content">
-            <h3>Net Worth</h3>
-            <p className="amount">₹{netWorth.toFixed(2)}</p>
-            <span className="period">Current</span>
-          </div>
-        </div>
+      {/* Stats Cards */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+        gap: '20px',
+        marginBottom: '32px'
+      }}>
+        {[
+          {
+            title: 'Total Expenses',
+            amount: `₹${totalExpenses.toFixed(2)}`,
+            period: 'This Month',
+            icon: FaMoneyBillWave,
+            backgroundColor: '#8E24AA',
+            hoverColor: '#7B1FA2'
+          },
+          {
+            title: 'Active Subscriptions', 
+            amount: subscriptionError ? 'Error' : `₹${totalSubscriptions.toFixed(2)}`,
+            period: 'Monthly',
+            icon: MdSubscriptions,
+            backgroundColor: '#1976D2',
+            hoverColor: '#1565C0'
+          },
+          {
+            title: 'Total Investments',
+            amount: `₹${totalInvestments.toFixed(2)}`,
+            period: 'Portfolio',
+            icon: MdTrendingUp,
+            backgroundColor: '#388E3C',
+            hoverColor: '#2E7D32'
+          },
+          {
+            title: 'Net Worth',
+            amount: `₹${netWorth.toFixed(2)}`,
+            period: 'Current',
+            icon: MdAccountBalance,
+            backgroundColor: netWorth >= 0 ? '#F57C00' : '#D32F2F',
+            hoverColor: netWorth >= 0 ? '#EF6C00' : '#C62828'
+          }
+        ].map((card, index) => {
+          const IconComponent = card.icon;
+          return (
+            <div key={index} style={{
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              padding: '24px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
+              border: '1px solid #e8eaed',
+              transition: 'all 0.2s ease',
+              cursor: 'pointer'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.transform = 'translateY(-2px)';
+              e.target.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)';
+            }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <div style={{
+                  backgroundColor: card.backgroundColor,
+                  padding: '12px',
+                  borderRadius: '8px',
+                  marginRight: '16px'
+                }}>
+                  <IconComponent style={{ fontSize: '24px', color: 'white' }} />
+                </div>
+                <div>
+                  <p style={{
+                    color: '#5f6368',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    margin: '0 0 4px 0'
+                  }}>
+                    {card.title}
+                  </p>
+                  <p style={{
+                    fontSize: '28px',
+                    fontWeight: '600',
+                    color: '#202124',
+                    margin: '0 0 4px 0'
+                  }}>
+                    {card.amount}
+                  </p>
+                  <p style={{ color: '#5f6368', fontSize: '14px', margin: 0 }}>{card.period}</p>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
-      {/* Mobile Responsive Expense Filter Section */}
+      {/* Expense Analysis Section */}
       <div style={{
-        background: 'white',
-        borderRadius: '10px',
-        padding: window.innerWidth < 768 ? '15px' : '20px',
-        marginBottom: '30px',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+        backgroundColor: 'white',
+        borderRadius: '12px',
+        padding: '24px',
+        marginBottom: '32px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
+        border: '1px solid #e8eaed'
       }}>
-        {/* Header - Stack on mobile */}
         <div style={{
           display: 'flex',
-          flexDirection: window.innerWidth < 768 ? 'column' : 'row',
+          flexDirection: window.innerWidth < 1024 ? 'column' : 'row',
+          alignItems: window.innerWidth < 1024 ? 'flex-start' : 'center',
           justifyContent: 'space-between',
-          alignItems: window.innerWidth < 768 ? 'flex-start' : 'center',
-          marginBottom: '20px',
-          gap: window.innerWidth < 768 ? '15px' : '0'
+          marginBottom: '24px',
+          gap: window.innerWidth < 1024 ? '16px' : '0'
         }}>
           <h3 style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '10px',
-            margin: 0,
-            fontSize: window.innerWidth < 768 ? '16px' : '18px'
+            fontSize: '20px',
+            fontWeight: '600',
+            color: '#202124',
+            margin: 0
           }}>
-            <MdFilterList style={{color: '#4F46E5'}} />
+            <MdFilterList style={{ fontSize: '24px', color: '#4285F4', marginRight: '8px' }} />
             Expense Analysis
           </h3>
           
-          {/* Controls - Stack on mobile */}
           <div style={{
             display: 'flex',
-            flexDirection: window.innerWidth < 768 ? 'column' : 'row',
-            gap: '10px',
-            alignItems: 'stretch',
-            width: window.innerWidth < 768 ? '100%' : 'auto'
+            flexDirection: window.innerWidth < 640 ? 'column' : 'row',
+            gap: '12px'
           }}>
-            <div style={{
-              display: 'flex',
-              gap: '5px',
-              width: '100%'
-            }}>
-              <button
-                onClick={() => setExpenseFilter('daily')}
-                style={{
-                  padding: window.innerWidth < 768 ? '12px 16px' : '8px 16px',
-                  borderRadius: '6px',
-                  border: 'none',
-                  fontSize: window.innerWidth < 768 ? '14px' : '14px',
-                  fontWeight: '500',
-                  cursor: 'pointer',
-                  background: expenseFilter === 'daily' ? '#4F46E5' : '#f3f4f6',
-                  color: expenseFilter === 'daily' ? 'white' : '#6b7280',
-                  transition: 'all 0.2s ease',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '5px',
-                  flex: '1',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                <FaCalendarDay size={12} />
-                Daily
-              </button>
-              <button
-                onClick={() => setExpenseFilter('weekly')}
-                style={{
-                  padding: window.innerWidth < 768 ? '12px 16px' : '8px 16px',
-                  borderRadius: '6px',
-                  border: 'none',
-                  fontSize: window.innerWidth < 768 ? '14px' : '14px',
-                  fontWeight: '500',
-                  cursor: 'pointer',
-                  background: expenseFilter === 'weekly' ? '#4F46E5' : '#f3f4f6',
-                  color: expenseFilter === 'weekly' ? 'white' : '#6b7280',
-                  transition: 'all 0.2s ease',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '5px',
-                  flex: '1',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                <FaCalendarWeek size={12} />
-                Weekly
-              </button>
-            </div>
-            <div style={{
-              width: '100%',
-              maxWidth: window.innerWidth < 768 ? '100%' : '150px'
-            }}>
-              <input
-                type="date"
-                value={filterDate}
-                onChange={(e) => setFilterDate(e.target.value)}
-                style={{
-                  padding: window.innerWidth < 768 ? '12px 10px' : '8px 12px',
-                  borderRadius: '6px',
-                  border: '1px solid #d1d5db',
-                  fontSize: window.innerWidth < 768 ? '14px' : '14px',
-                  outline: 'none',
-                  transition: 'border-color 0.2s ease',
-                  width: '100%',
-                  boxSizing: 'border-box',
-                  appearance: 'none',
-                  WebkitAppearance: 'none',
-                  MozAppearance: 'textfield'
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#4F46E5'}
-                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-              />
-            </div>
-          </div>
-        </div>
-        
-        {/* Cards - Single column on mobile */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: window.innerWidth < 768 ? '1fr' : 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: window.innerWidth < 768 ? '12px' : '15px',
-          marginBottom: '20px'
-        }}>
-          <div style={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            color: 'white',
-            padding: window.innerWidth < 768 ? '14px' : '16px',
-            borderRadius: '8px'
-          }}>
-            <h4 style={{
-              margin: '0 0 6px 0',
-              fontSize: window.innerWidth < 768 ? '13px' : '14px',
-              opacity: 0.9
-            }}>
-              {expenseFilter === 'daily' ? 'Daily' : 'Weekly'} Total
-            </h4>
-            <p style={{
-              margin: 0,
-              fontSize: window.innerWidth < 768 ? '20px' : '24px',
-              fontWeight: 'bold'
-            }}>
-              ₹{filteredTotal.toFixed(2)}
-            </p>
-            <span style={{
-              fontSize: window.innerWidth < 768 ? '11px' : '12px',
-              opacity: 0.8
-            }}>
-              {filteredExpenses.length} transaction{filteredExpenses.length !== 1 ? 's' : ''}
-            </span>
-          </div>
-          
-          <div style={{
-            background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-            color: 'white',
-            padding: window.innerWidth < 768 ? '14px' : '16px',
-            borderRadius: '8px'
-          }}>
-            <h4 style={{
-              margin: '0 0 6px 0',
-              fontSize: window.innerWidth < 768 ? '13px' : '14px',
-              opacity: 0.9
-            }}>
-              Top Category
-            </h4>
-            {(() => {
-              const topCategory = Object.entries(filteredCategoryData).sort((a, b) => b[1] - a[1])[0];
-              return topCategory ? (
-                <>
-                  <p style={{
-                    margin: 0,
-                    fontSize: window.innerWidth < 768 ? '14px' : '16px',
-                    fontWeight: '600'
-                  }}>
-                    {topCategory[0]}
-                  </p>
-                  <span style={{
-                    fontSize: window.innerWidth < 768 ? '12px' : '14px',
-                    opacity: 0.8
-                  }}>
-                    ₹{topCategory[1].toFixed(2)}
-                  </span>
-                </>
-              ) : (
-                <p style={{
-                  margin: 0,
-                  fontSize: window.innerWidth < 768 ? '12px' : '14px',
-                  opacity: 0.8
-                }}>
-                  No expenses
-                </p>
-              );
-            })()}
-          </div>
-          
-          <div style={{
-            background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-            color: 'white',
-            padding: window.innerWidth < 768 ? '14px' : '16px',
-            borderRadius: '8px'
-          }}>
-            <h4 style={{
-              margin: '0 0 6px 0',
-              fontSize: window.innerWidth < 768 ? '13px' : '14px',
-              opacity: 0.9
-            }}>
-              Avg per Day
-            </h4>
-            <p style={{
-              margin: 0,
-              fontSize: window.innerWidth < 768 ? '14px' : '16px',
-              fontWeight: '600'
-            }}>
-              ₹{expenseFilter === 'weekly' ? (filteredTotal / 7).toFixed(2) : filteredTotal.toFixed(2)}
-            </p>
-            <span style={{
-              fontSize: window.innerWidth < 768 ? '11px' : '12px',
-              opacity: 0.8
-            }}>
-              {expenseFilter === 'weekly' ? 'This week' : 'Today'}
-            </span>
-          </div>
-        </div>
-        
-        {/* Transaction List */}
-        {filteredExpenses.length > 0 && (
-          <div>
-            <h4 style={{
-              marginBottom: '12px',
-              color: '#374151',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              fontSize: window.innerWidth < 768 ? '14px' : '16px'
-            }}>
-              <FaMoneyBillWave style={{color: '#4F46E5'}} />
-              Filtered Transactions
-            </h4>
-            <div style={{
-              maxHeight: window.innerWidth < 768 ? '150px' : '200px',
-              overflowY: 'auto',
-              border: '1px solid #e5e7eb',
-              borderRadius: '6px'
-            }}>
-              {filteredExpenses.map(exp => (
-                <div key={exp.id} style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: window.innerWidth < 768 ? '10px 12px' : '12px 16px',
-                  borderBottom: '1px solid #f3f4f6',
-                  background: 'white',
-                  transition: 'background 0.2s ease'
-                }}>
-                  <div style={{
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {['daily', 'weekly'].map((period) => (
+                <button
+                  key={period}
+                  onClick={() => setExpenseFilter(period)}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '20px',
+                    fontWeight: '500',
+                    fontSize: '14px',
+                    transition: 'all 0.2s',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: window.innerWidth < 768 ? '8px' : '10px',
-                    flex: 1,
-                    minWidth: 0
-                  }}>
-                    {getCategoryIcon(exp.category)}
-                    <div style={{flex: 1, minWidth: 0}}>
-                      <div style={{
-                        color: '#374151',
-                        fontSize: window.innerWidth < 768 ? '13px' : '14px',
-                        fontWeight: '500',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap'
-                      }}>
-                        {exp.description}
-                      </div>
-                      <div style={{
-                        color: '#9ca3af',
-                        fontSize: window.innerWidth < 768 ? '11px' : '12px',
-                        display: window.innerWidth < 480 ? 'block' : 'inline'
-                      }}>
-                        {new Date(exp.date).toLocaleDateString()}
-                        {window.innerWidth >= 480 && ` • ${exp.category || 'Other'}`}
-                      </div>
-                      {window.innerWidth < 480 && (
-                        <div style={{
-                          color: '#9ca3af',
-                          fontSize: '11px'
-                        }}>
-                          {exp.category || 'Other'}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <span style={{
-                    fontWeight: '600',
-                    color: '#dc2626',
-                    fontSize: window.innerWidth < 768 ? '13px' : '14px',
-                    marginLeft: '8px',
-                    flexShrink: 0
-                  }}>
-                    -₹{parseFloat(exp.amount || 0).toFixed(2)}
-                  </span>
-                </div>
+                    gap: '6px',
+                    border: '1px solid #dadce0',
+                    cursor: 'pointer',
+                    backgroundColor: expenseFilter === period ? '#4285F4' : 'white',
+                    color: expenseFilter === period ? 'white' : '#5f6368'
+                  }}
+                >
+                  {period === 'daily' ? <FaCalendarDay style={{ fontSize: '14px' }} /> : <FaCalendarWeek style={{ fontSize: '14px' }} />}
+                  {period.charAt(0).toUpperCase() + period.slice(1)}
+                </button>
               ))}
             </div>
+            <input
+              type="date"
+              value={filterDate}
+              onChange={(e) => setFilterDate(e.target.value)}
+              style={{
+                padding: '8px 12px',
+                border: '1px solid #dadce0',
+                borderRadius: '4px',
+                outline: 'none',
+                backgroundColor: 'white',
+                color: '#202124',
+                fontSize: '14px'
+              }}
+            />
           </div>
-        )}
+        </div>
+        
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '16px'
+        }}>
+          {[
+            {
+              title: `${expenseFilter === 'daily' ? 'Daily' : 'Weekly'} Total`,
+              amount: `₹${filteredTotal.toFixed(2)}`,
+              subtitle: `${filteredExpenses.length} transaction${filteredExpenses.length !== 1 ? 's' : ''}`,
+              backgroundColor: '#4285F4'
+            },
+            {
+              title: 'Top Category',
+              amount: (() => {
+                const topCategory = Object.entries(filteredCategoryData).sort((a, b) => b[1] - a[1])[0];
+                return topCategory ? topCategory[0] : 'No expenses';
+              })(),
+              subtitle: (() => {
+                const topCategory = Object.entries(filteredCategoryData).sort((a, b) => b[1] - a[1])[0];
+                return topCategory ? `₹${topCategory[1].toFixed(2)}` : '';
+              })(),
+              backgroundColor: '#34A853'
+            },
+            {
+              title: 'Avg per Day',
+              amount: `₹${(expenseFilter === 'weekly' ? filteredTotal / 7 : filteredTotal).toFixed(2)}`,
+              subtitle: expenseFilter === 'weekly' ? 'This week' : 'Today',
+              backgroundColor: '#EA4335'
+            }
+          ].map((card, index) => (
+            <div key={index} style={{
+              backgroundColor: card.backgroundColor,
+              borderRadius: '8px',
+              padding: '20px',
+              color: 'white',
+              transition: 'transform 0.2s ease',
+              cursor: 'pointer'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.transform = 'translateY(-2px)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = 'translateY(0)';
+            }}
+            >
+              <h4 style={{
+                fontSize: '14px',
+                opacity: 0.9,
+                margin: '0 0 8px 0',
+                fontWeight: '500'
+              }}>
+                {card.title}
+              </h4>
+              <p style={{
+                fontSize: '24px',
+                fontWeight: '600',
+                margin: '0 0 4px 0'
+              }}>
+                {card.amount}
+              </p>
+              <span style={{
+                fontSize: '12px',
+                opacity: 0.8
+              }}>
+                {card.subtitle}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div className="charts-grid">
-        <div className="chart-card">
-          <div className="chart-header">
-            <h3><FaChartPie /> Expense Categories</h3>
-          </div>
-          <div className="chart-container">
-            <ResponsiveContainer width="100%" height={300}>
+      {/* Charts */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: window.innerWidth < 1024 ? '1fr' : '1fr 1fr',
+        gap: '20px',
+        marginBottom: '32px'
+      }}>
+        <div style={{
+          backgroundColor: 'white',
+          borderRadius: '12px',
+          padding: '24px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
+          border: '1px solid #e8eaed'
+        }}>
+          <h3 style={{
+            display: 'flex',
+            alignItems: 'center',
+            fontSize: '18px',
+            fontWeight: '600',
+            color: '#202124',
+            margin: '0 0 16px 0'
+          }}>
+            <FaChartPie style={{ fontSize: '20px', color: '#4285F4', marginRight: '8px' }} />
+            Expense Categories
+          </h3>
+          <div style={{ height: '300px' }}>
+            <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={pieData}
@@ -554,32 +503,62 @@ function Dashboard() {
                 </Pie>
                 <Tooltip 
                   formatter={(value) => [`₹${value.toFixed(2)}`, 'Amount']}
+                  contentStyle={{
+                    backgroundColor: 'white',
+                    border: '1px solid #e8eaed',
+                    borderRadius: '8px',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                    color: '#202124'
+                  }}
                 />
-                <Legend />
+                <Legend 
+                  wrapperStyle={{ color: '#5f6368' }}
+                />
               </PieChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        <div className="chart-card">
-          <div className="chart-header">
-            <h3><MdShowChart /> Financial Overview</h3>
-          </div>
-          <div className="chart-container">
-            <ResponsiveContainer width="100%" height={300}>
+        <div style={{
+          backgroundColor: 'white',
+          borderRadius: '12px',
+          padding: '24px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
+          border: '1px solid #e8eaed'
+        }}>
+          <h3 style={{
+            display: 'flex',
+            alignItems: 'center',
+            fontSize: '18px',
+            fontWeight: '600',
+            color: '#202124',
+            margin: '0 0 16px 0'
+          }}>
+            <MdShowChart style={{ fontSize: '20px', color: '#4285F4', marginRight: '8px' }} />
+            Financial Overview
+          </h3>
+          <div style={{ height: '300px' }}>
+            <ResponsiveContainer width="100%" height="100%">
               <BarChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="name" stroke="#6b7280" />
-                <YAxis stroke="#6b7280" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f3f4" />
+                <XAxis dataKey="name" stroke="#5f6368" fontSize={12} />
+                <YAxis stroke="#5f6368" fontSize={12} />
                 <Tooltip 
                   formatter={(value) => [`₹${value.toFixed(2)}`, 'Amount']}
                   labelFormatter={(label) => `${label}`}
+                  contentStyle={{
+                    backgroundColor: 'white',
+                    border: '1px solid #e8eaed',
+                    borderRadius: '8px',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                    color: '#202124'
+                  }}
                 />
                 <Bar 
                   dataKey="amount" 
                   radius={[4, 4, 0, 0]} 
-                  fill="#4F46E5" 
-                  animationDuration={1500}
+                  fill="#4285F4"
+                  animationDuration={1000}
                 />
               </BarChart>
             </ResponsiveContainer>
@@ -587,102 +566,122 @@ function Dashboard() {
         </div>
       </div>
 
-      <div className="recent-transactions">
-        <div className="transactions-header">
-          <h3><FaMoneyBillWave /> Recent Transactions</h3>
-          <button className="view-all-btn">View All</button>
+      {/* Recent Transactions */}
+      <div style={{
+        backgroundColor: 'white',
+        borderRadius: '12px',
+        padding: '24px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
+        border: '1px solid #e8eaed'
+      }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '24px'
+        }}>
+          <h3 style={{
+            display: 'flex',
+            alignItems: 'center',
+            fontSize: '18px',
+            fontWeight: '600',
+            color: '#202124',
+            margin: 0
+          }}>
+            <FaMoneyBillWave style={{ fontSize: '20px', color: '#4285F4', marginRight: '8px' }} />
+            Recent Transactions
+          </h3>
+          <button style={{
+            padding: '8px 16px',
+            backgroundColor: '#4285F4',
+            color: 'white',
+            borderRadius: '20px',
+            border: 'none',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            fontWeight: '500',
+            fontSize: '14px'
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.backgroundColor = '#3367D6';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.backgroundColor = '#4285F4';
+          }}
+          >
+            View All
+          </button>
         </div>
         
-        {/* Mobile-friendly transaction list */}
-        {window.innerWidth < 768 ? (
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '10px',
-            padding: '10px 0'
-          }}>
-            {expenses.slice(0, 5).map(exp => (
-              <div key={exp.id} style={{
-                background: 'white',
-                padding: '12px',
-                borderRadius: '8px',
-                border: '1px solid #e5e7eb',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-              }}>
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'flex-start',
-                  marginBottom: '8px'
-                }}>
-                  <div style={{flex: 1, minWidth: 0}}>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid #e8eaed' }}>
+                {['Date', 'Description', 'Category', 'Amount'].map((header) => (
+                  <th key={header} style={{
+                    textAlign: header === 'Amount' ? 'right' : 'left',
+                    padding: '12px 8px',
+                    fontWeight: '500',
+                    fontSize: '14px',
+                    color: '#5f6368'
+                  }}>
+                    {header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {expenses.slice(0, 5).map((exp, index) => (
+                <tr key={exp.id} style={{
+                  borderBottom: '1px solid #f1f3f4',
+                  transition: 'background-color 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = '#f8f9fa';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = 'transparent';
+                }}
+                >
+                  <td style={{
+                    padding: '12px 8px',
+                    color: '#5f6368',
+                    fontSize: '14px'
+                  }}>
+                    {new Date(exp.date).toLocaleDateString()}
+                  </td>
+                  <td style={{
+                    padding: '12px 8px',
+                    color: '#202124',
+                    fontWeight: '500',
+                    fontSize: '14px'
+                  }}>
+                    {exp.description}
+                  </td>
+                  <td style={{ padding: '12px 8px' }}>
                     <div style={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '8px',
-                      marginBottom: '4px'
+                      gap: '8px'
                     }}>
                       {getCategoryIcon(exp.category)}
-                      <span style={{
-                        fontSize: '14px',
-                        fontWeight: '500',
-                        color: '#374151',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap'
-                      }}>
-                        {exp.description}
-                      </span>
+                      <span style={{ color: '#5f6368', fontSize: '14px' }}>{exp.category || 'Other'}</span>
                     </div>
-                    <div style={{
-                      fontSize: '12px',
-                      color: '#6b7280'
-                    }}>
-                      {new Date(exp.date).toLocaleDateString()} • {exp.category || 'Other'}
-                    </div>
-                  </div>
-                  <div style={{
-                    fontSize: '14px',
+                  </td>
+                  <td style={{
+                    padding: '12px 8px',
+                    textAlign: 'right',
                     fontWeight: '600',
-                    color: '#dc2626',
-                    marginLeft: '12px',
-                    flexShrink: 0
+                    fontSize: '14px',
+                    color: '#ea4335'
                   }}>
                     -₹{parseFloat(exp.amount).toFixed(2)}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="transactions-table-container">
-            <table className="transactions-table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Description</th>
-                  <th>Category</th>
-                  <th>Amount</th>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {expenses.slice(0, 5).map(exp => (
-                  <tr key={exp.id}>
-                    <td>{new Date(exp.date).toLocaleDateString()}</td>
-                    <td>{exp.description}</td>
-                    <td>
-                      <div className="category-cell">
-                        {getCategoryIcon(exp.category)}
-                        {exp.category || 'Other'}
-                      </div>
-                    </td>
-                    <td className="amount-cell negative">-₹{parseFloat(exp.amount).toFixed(2)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
